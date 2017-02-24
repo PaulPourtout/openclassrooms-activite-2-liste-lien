@@ -23,6 +23,9 @@ var listeLiens = [{
 	}
 ];
 
+var contenu = document.getElementById("contenu");
+
+
 // Crée et renvoie un élément DOM affichant les données d'un lien
 // Le paramètre lien est un objet JS représentant un lien
 function creerElementLien(lien) {
@@ -54,21 +57,22 @@ function creerElementLien(lien) {
 	return divLien;
 }
 
-var contenu = document.getElementById("contenu");
 // Parcours de la liste des liens et ajout d'un élément au DOM pour chaque lien
-listeLiens.forEach(function(lien) {
-	var elementLien = creerElementLien(lien);
-	contenu.appendChild(elementLien);
-});
+var generationListLiens = function() {
+	listeLiens.forEach(function(lien) {
+		var elementLien = creerElementLien(lien);
+		contenu.appendChild(elementLien);
+	});
+};
+// execute la fonction précedement créée
+generationListLiens();
 
 
-
-// Affichage du form permettant d'ajouter nouveau lien
+var control = document.getElementById('control');
 var formContainer = document.getElementById('form-container');
 var formBtn = document.getElementById('afficher-form');
 
-
-
+// Affichage du form permettant d'ajouter nouveau lien
 var createLinkForm = function() {
 	this.style.display = "none";
 
@@ -76,31 +80,60 @@ var createLinkForm = function() {
 
 	var wantedLinkAuthor = document.createElement('input');
 	wantedLinkAuthor.type = "text";
-	// wantedLinkAuthor.requested = true;
+	wantedLinkAuthor.required = true;
 	wantedLinkAuthor.placeholder = "Author";
 
 	var wantedLinkTitle = document.createElement('input');
 	wantedLinkTitle.type = "text";
+	wantedLinkTitle.required = false;
 	wantedLinkTitle.placeholder = "Link Title";
 
 	var wantedLinkUrl = document.createElement('input');
 	wantedLinkUrl.type = "text";
+	wantedLinkUrl.required = true;
 	wantedLinkUrl.placeholder = "Link Url";
 
 	var wantedAddBtn = document.createElement("input");
 	wantedAddBtn.type = "submit";
 	wantedAddBtn.id = "add-link";
 	wantedAddBtn.value = "Ajouter";
-	wantedAddBtn.addEventListener("click", function(e){
-		var newLinkContainer = document.createElement("div");
-		newLinkContainer.classList.add("lien");
-		var newLinkTitle = document.createElement("h4");
-		newLinkTitle.textContent = wantedLinkTitle.value;
-		contenu.appendChild(newLinkContainer);
-		newLinkContainer.appendChild(newLinkTitle);
+	wantedAddBtn.addEventListener("click", function(e) {
+
+		// Verification de l'Url, si pas de http:// ou https:// ajoute http://
+		var newUrl;
+		if (wantedLinkUrl.value.search(/http:\/\/|https:\/\//) === -1) {
+			newUrl = "http://" + wantedLinkUrl.value;
+		} else {
+			newUrl = wantedLinkUrl.value;
+		}
+
+		// Regroupe les info du nouveau lien dans un objet
+		var newLinkData = {
+			titre: wantedLinkTitle.value,
+			url: newUrl,
+			auteur: wantedLinkAuthor.value
+		};
+
+		// Ajoute l'objet contenant le nouveau lien au tableau contenant la liste des liens
+		listeLiens.unshift(newLinkData);
+
+		// Vide la l'element "contenu" au cas où il comporte du HTML
+		contenu.textContent = "";
+
+		// Regenère la liste des liens avec le nouvel élément
+		generationListLiens();
+
+		// Supprime le formulaire
+		newForm.parentNode.removeChild(newForm);
+
+		// Fait réapparaitre le bouton affichant le formulaire
+		formBtn.style.display = "block";
+
+		linkAdded(wantedLinkTitle);
 		e.preventDefault();
 	});
 
+	// Intègre les elements du formulaire dans le HTML
 	formContainer.appendChild(newForm);
 	newForm.appendChild(wantedLinkAuthor);
 	newForm.appendChild(wantedLinkTitle);
@@ -108,6 +141,18 @@ var createLinkForm = function() {
 	newForm.appendChild(wantedAddBtn);
 };
 
+// Function affichant un message confirmant l'ajout du nouveau lien
+var linkAdded = function(linkTitle) {
+	var linkAddedDiv = document.createElement("p");
+	linkAddedDiv.setAttribute("id", "link-added");
+	linkAddedDiv.textContent = "Le lien \"" + linkTitle.value + "\" a bien été ajouté !";
+	control.insertBefore(linkAddedDiv, formContainer);
 
+	// Au bout de 2 secondes, le message doit être supprimé du HMTL
+	setTimeout(function() {
+		control.removeChild(linkAddedDiv);
+	}, 2000);
+};
 
+// Appelle la fonction générant le formulaire
 formBtn.addEventListener('click', createLinkForm);

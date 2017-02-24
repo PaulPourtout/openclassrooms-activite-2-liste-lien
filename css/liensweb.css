@@ -19,3 +19,9 @@ span {
 #form-container button, #form-container input{
 	margin: 20px 20px 20px 0;
 }
+
+#link-added {
+	background-color: #D6ECF6;
+	color: #265f79;
+	padding: 25px 10px;
+}
